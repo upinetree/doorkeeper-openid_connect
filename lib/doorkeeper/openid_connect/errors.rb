@@ -16,6 +16,7 @@ module Doorkeeper
           super('Configuration for Doorkeeper OpenID Connect missing. Do you have doorkeeper_openid_connect initializer?')
         end
       end
+      class InvalidJwks < OpenidConnectError; end
 
       # OAuth 2.0 errors
       # https://tools.ietf.org/html/rfc6749#section-4.1.2.1

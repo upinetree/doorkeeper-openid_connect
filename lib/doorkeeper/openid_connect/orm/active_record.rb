@@ -5,6 +5,7 @@ require 'active_support/lazy_load_hooks'
 module Doorkeeper
   module OpenidConnect
     autoload :AccessGrant, "doorkeeper/openid_connect/orm/active_record/access_grant"
+    autoload :Application, "doorkeeper/openid_connect/orm/active_record/application"
     autoload :Request, "doorkeeper/openid_connect/orm/active_record/request"
 
     module Orm
@@ -18,8 +19,10 @@ module Doorkeeper
 
           if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.0')
             Doorkeeper.config.access_grant_model.prepend Doorkeeper::OpenidConnect::AccessGrant
+            Doorkeeper.config.application_model.prepend Doorkeeper::OpenidConnect::Application
           else
             Doorkeeper::AccessGrant.prepend Doorkeeper::OpenidConnect::AccessGrant
+            Doorkeeper::Application.prepend Doorkeeper::OpenidConnect::Application
           end
 
           if Doorkeeper.configuration.respond_to?(:active_record_options) && Doorkeeper.configuration.active_record_options[:establish_connection]
@@ -33,12 +36,15 @@ module Doorkeeper
           super
           ActiveSupport.on_load(:active_record) do
             require 'doorkeeper/openid_connect/orm/active_record/access_grant'
+            require 'doorkeeper/openid_connect/orm/active_record/application'
             require 'doorkeeper/openid_connect/orm/active_record/request'
 
             if Gem.loaded_specs['doorkeeper'].version >= Gem::Version.create('5.5.0')
               Doorkeeper.config.access_grant_model.prepend Doorkeeper::OpenidConnect::AccessGrant
+              Doorkeeper.config.application_model.prepend Doorkeeper::OpenidConnect::Application
             else
               Doorkeeper::AccessGrant.prepend Doorkeeper::OpenidConnect::AccessGrant
+              Doorkeeper::Application.prepend Doorkeeper::OpenidConnect::Application
             end
 
             if Doorkeeper.configuration.active_record_options[:establish_connection]
