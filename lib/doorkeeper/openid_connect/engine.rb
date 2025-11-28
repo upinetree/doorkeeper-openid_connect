@@ -9,6 +9,7 @@ module Doorkeeper
 
       config.to_prepare do
         Doorkeeper::AuthorizationsController.prepend Doorkeeper::OpenidConnect::AuthorizationsExtension
+        Doorkeeper::Server.prepend Doorkeeper::OpenidConnect::OAuth::ServerExtension
       end
     end
   end
