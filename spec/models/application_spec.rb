@@ -6,6 +6,13 @@ describe Doorkeeper::OpenidConnect::Application do
   let(:application) { Doorkeeper::Application.new }
 
   describe '#public_keys' do
+    context 'when jwks column does not exist' do
+      it 'returns an empty array' do
+        allow(application).to receive(:respond_to?).with(:jwks).and_return(false)
+        expect(application.public_keys).to eq([])
+      end
+    end
+
     context 'when jwks is blank' do
       it 'returns an empty array' do
         application.jwks = nil
@@ -54,6 +61,13 @@ describe Doorkeeper::OpenidConnect::Application do
   end
 
   describe '#uses_private_key_jwt?' do
+    context 'when token_endpoint_auth_method column does not exist' do
+      it 'returns false' do
+        allow(application).to receive(:respond_to?).with(:token_endpoint_auth_method).and_return(false)
+        expect(application.uses_private_key_jwt?).to be false
+      end
+    end
+
     it 'returns true when token_endpoint_auth_method is private_key_jwt' do
       application.token_endpoint_auth_method = 'private_key_jwt'
       expect(application.uses_private_key_jwt?).to be true
