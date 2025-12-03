@@ -22,7 +22,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'response_modes_supported' => %w[query fragment form_post],
         'grant_types_supported' => %w[authorization_code client_credentials implicit_oidc],
 
-        'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post],
+        'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post private_key_jwt],
 
         'subject_types_supported' => [
           'public',

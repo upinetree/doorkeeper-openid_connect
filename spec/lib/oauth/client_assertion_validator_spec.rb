@@ -228,6 +228,12 @@ describe Doorkeeper::OpenidConnect::OAuth::ClientAssertionValidator do
             )
           end
 
+          before do
+            allow(Doorkeeper::OpenidConnect.configuration)
+              .to receive(:client_assertion_algorithms)
+              .and_return(%w[RS256 ES256 ES384 ES512])
+          end
+
           it 'returns true' do
             algo_validator = described_class.new(
               assertion: assertion,

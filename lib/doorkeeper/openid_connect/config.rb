@@ -43,6 +43,8 @@ module Doorkeeper
       option :signing_key
       option :signing_algorithm, default: :rs256
       option :subject_types_supported, default: [:public]
+      option :client_assertion_algorithms, default: %w[RS256 ES256]
+      option :jwt_assertion_exp_tolerance, default: 300
 
       option :resource_owner_from_access_token, default: lambda { |*_|
         raise Errors::InvalidConfiguration, I18n.translate('doorkeeper.openid_connect.errors.messages.resource_owner_from_access_token_not_configured')

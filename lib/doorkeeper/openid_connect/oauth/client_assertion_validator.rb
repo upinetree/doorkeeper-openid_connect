@@ -87,19 +87,11 @@ module Doorkeeper
         end
 
         def allowed_algorithms
-          if Doorkeeper::OpenidConnect.configuration.respond_to?(:client_assertion_algorithms)
-            Doorkeeper::OpenidConnect.configuration.client_assertion_algorithms
-          else
-            %w[ES256 ES384 ES512]
-          end
+          Doorkeeper::OpenidConnect.configuration.client_assertion_algorithms
         end
 
         def exp_tolerance
-          if Doorkeeper::OpenidConnect.configuration.respond_to?(:jwt_assertion_exp_tolerance)
-            Doorkeeper::OpenidConnect.configuration.jwt_assertion_exp_tolerance
-          else
-            300 # 5 minutes default
-          end
+          Doorkeeper::OpenidConnect.configuration.jwt_assertion_exp_tolerance
         end
       end
     end

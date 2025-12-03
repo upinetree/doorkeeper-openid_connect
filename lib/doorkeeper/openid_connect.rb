@@ -68,6 +68,12 @@ module Doorkeeper
       signing_key.export
     end
 
+    def self.token_endpoint_auth_methods_supported
+      # TODO: 'client_secret_jwt' support
+      # TODO: Make configurable
+      %w[client_secret_basic client_secret_post private_key_jwt]
+    end
+
     Doorkeeper::GrantFlow.register(
       :id_token,
       response_type_matches: 'id_token',

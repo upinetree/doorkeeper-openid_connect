@@ -229,4 +229,34 @@ describe Doorkeeper::OpenidConnect, 'configuration' do
       expect(subject.discovery_url_options.call[:authorization]).to eq(host: 'alternate-authorization-host')
     end
   end
+
+  describe 'client_assertion_algorithms' do
+    it 'defaults to RS256 and ES256' do
+      described_class.configure {}
+      expect(subject.client_assertion_algorithms).to eq(%w[RS256 ES256])
+    end
+
+    it 'can be customized' do
+      custom_algorithms = %w[RS256 RS384 RS512 ES256 ES384 ES512]
+      described_class.configure do
+        client_assertion_algorithms custom_algorithms
+      end
+      expect(subject.client_assertion_algorithms).to eq(custom_algorithms)
+    end
+  end
+
+  describe 'jwt_assertion_exp_tolerance' do
+    it 'defaults to 300 seconds' do
+      described_class.configure {}
+      expect(subject.jwt_assertion_exp_tolerance).to eq(300)
+    end
+
+    it 'can be customized' do
+      custom_tolerance = 600
+      described_class.configure do
+        jwt_assertion_exp_tolerance custom_tolerance
+      end
+      expect(subject.jwt_assertion_exp_tolerance).to eq(custom_tolerance)
+    end
+  end
 end

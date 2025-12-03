@@ -165,6 +165,18 @@ describe Doorkeeper::OpenidConnect do
     end
   end
 
+  describe '.token_endpoint_auth_methods_supported' do
+    it 'returns supported authentication methods including private_key_jwt' do
+      expect(subject.token_endpoint_auth_methods_supported).to eq(
+        %w[client_secret_basic client_secret_post private_key_jwt]
+      )
+    end
+
+    it 'returns an array' do
+      expect(subject.token_endpoint_auth_methods_supported).to be_an(Array)
+    end
+  end
+
   describe 'registering grant flows' do
     describe Doorkeeper::Request do
       it 'uses the correct strategy for "id_token" response types' do
