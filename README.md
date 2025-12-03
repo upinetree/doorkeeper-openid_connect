@@ -17,6 +17,7 @@ OpenID Connect is a single-sign-on and identity layer with a [growing list of se
   - [Example Applications](#example-applications)
 - [Installation](#installation)
 - [Configuration](#configuration)
+  - [Client Authentication](#client-authentication)
   - [Scopes](#scopes)
   - [Claims](#claims)
   - [Routes](#routes)
@@ -35,6 +36,7 @@ The following parts of [OpenID Connect Core 1.0](http://openid.net/specs/openid-
 - [UserInfo Endpoint](http://openid.net/specs/openid-connect-core-1_0.html#UserInfo)
 - [Normal Claims](http://openid.net/specs/openid-connect-core-1_0.html#NormalClaims)
 - [OAuth 2.0 Form Post Response Mode](https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html)
+- [Client Authentication using private_key_jwt](https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication) ([RFC 7523](https://tools.ietf.org/html/rfc7523))
 
 In addition we also support most of [OpenID Connect Discovery 1.0](http://openid.net/specs/openid-connect-discovery-1_0.html) for automatic configuration discovery.
 
@@ -65,12 +67,24 @@ Run the installation generator to update routes and create the initializer:
 rails generate doorkeeper:openid_connect:install
 ```
 
-Generate a migration for Active Record (other ORMs are currently not supported):
+Generate migrations for Active Record (other ORMs are currently not supported):
 
 ```sh
 rails generate doorkeeper:openid_connect:migration
 rake db:migrate
 ```
+
+If you need JWT-based client authentication (`private_key_jwt`), also run:
+
+```sh
+rails generate doorkeeper:openid_connect:client_assertion_migration
+rake db:migrate
+```
+
+This migration adds:
+- `jwks` column for storing client public keys
+- `token_endpoint_auth_method` column for specifying authentication method
+- Removes NOT NULL constraint from `secret` column (since JWT authentication doesn't require a client secret)
 
 If you're upgrading from an earlier version, check [CHANGELOG.md](CHANGELOG.md) for upgrade instructions.
 
@@ -163,6 +177,17 @@ The following settings are optional:
     end
     ```
 
+- `client_assertion_algorithms`
+  - List of allowed algorithms for JWT client assertion signatures (used with `private_key_jwt` authentication).
+  - The default is `%w[RS256 ES256]`
+  - Example: `client_assertion_algorithms %w[RS256 RS384 RS512 ES256 ES384 ES512]`
+  - The list of supported algorithms can be found [here](https://github.com/nov/json-jwt/wiki/JWS#supported-signing-algorithms)
+
+- `jwt_assertion_exp_tolerance`
+  - Clock skew tolerance in seconds when validating JWT client assertion exp/nbf/iat claims.
+  - The default is 300 seconds (5 minutes)
+  - Example: `jwt_assertion_exp_tolerance 600`
+
 - `protocol`
   - The protocol to use when generating URIs for the discovery endpoints.
   - The default is `https` for production, and `http` for all other environments
@@ -202,6 +227,65 @@ The following settings are optional:
     # ...
     end
     ```
+
+### Client Authentication
+
+Doorkeeper OpenID Connect supports multiple client authentication methods at the token endpoint:
+
+- **`client_secret_basic`** - HTTP Basic authentication with client credentials (Doorkeeper default)
+- **`client_secret_post`** - Client credentials in POST body (Doorkeeper default)
+- **`private_key_jwt`** - JWT-based authentication using asymmetric cryptography (RFC 7523)
+
+#### Private Key JWT Authentication
+
+To use `private_key_jwt` authentication, configure your OAuth application with:
+
+1. Set `token_endpoint_auth_method` to `'private_key_jwt'`
+2. Provide a JSON Web Key Set (JWKS) containing the client's public keys
+
+Example:
+
+```ruby
+application = Doorkeeper::Application.create!(
+  name: 'My Client',
+  redirect_uri: 'https://client.example.com/callback',
+  token_endpoint_auth_method: 'private_key_jwt',
+  jwks: {
+    keys: [
+      {
+        kty: 'EC',
+        crv: 'P-256',
+        x: 'WKn-ZIGevcwGIyyrzFoZNBdaq9_TsqzGl96oc0CWuis',
+        y: 'y77t-RvAHRKTsSGdIYUfweuOvwrvDD-Q3Hv5J0fSKbE',
+        kid: 'key-1'
+      }
+    ]
+  }.to_json
+)
+```
+
+Clients authenticate by sending a signed JWT assertion in the `client_assertion` parameter:
+
+```
+POST /oauth/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code
+&code=...
+&redirect_uri=https://client.example.com/callback
+&client_id=...
+&client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+&client_assertion=eyJhbGc...
+```
+
+The JWT assertion must include:
+- `iss` (issuer): client_id
+- `sub` (subject): client_id
+- `aud` (audience): token endpoint URL
+- `exp` (expiration): token expiration time
+- `iat` (issued at): token issuance time
+
+Allowed algorithms are configurable via `client_assertion_algorithms`
 
 ### Scopes
 
