@@ -41,7 +41,6 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     context 'when valid client_assertion is provided' do
       let(:parameters) do
         {
-          'client_id' => application.uid,
           'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
           'client_assertion' => client_assertion,
           'grant_type' => 'authorization_code'
@@ -58,7 +57,6 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     context 'when client_assertion_type is missing' do
       let(:parameters) do
         {
-          'client_id' => application.uid,
           'client_assertion' => client_assertion,
           'grant_type' => 'authorization_code'
         }
@@ -74,7 +72,6 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     context 'when client_assertion is missing' do
       let(:parameters) do
         {
-          'client_id' => application.uid,
           'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
           'grant_type' => 'authorization_code'
         }
@@ -87,11 +84,11 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
       end
     end
 
-    context 'when client_id is missing' do
+    context 'when JWT is malformed' do
       let(:parameters) do
         {
           'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'client_assertion' => client_assertion,
+          'client_assertion' => 'malformed.jwt.token',
           'grant_type' => 'authorization_code'
         }
       end
@@ -102,11 +99,18 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     end
 
     context 'when application does not exist' do
+      let(:non_existent_assertion) do
+        generate_client_assertion(
+          client_id: 'non-existent-client',
+          audience: token_endpoint_url,
+          keypair: keypair
+        )
+      end
+
       let(:parameters) do
         {
-          'client_id' => 'non-existent-client',
           'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'client_assertion' => client_assertion,
+          'client_assertion' => non_existent_assertion,
           'grant_type' => 'authorization_code'
         }
       end
@@ -122,11 +126,18 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
                token_endpoint_auth_method: 'client_secret_basic')
       end
 
+      let(:assertion_for_secret_basic) do
+        generate_client_assertion(
+          client_id: application_secret_basic.uid,
+          audience: token_endpoint_url,
+          keypair: keypair
+        )
+      end
+
       let(:parameters) do
         {
-          'client_id' => application_secret_basic.uid,
           'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'client_assertion' => client_assertion,
+          'client_assertion' => assertion_for_secret_basic,
           'grant_type' => 'authorization_code'
         }
       end
@@ -148,7 +159,6 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
 
       let(:parameters) do
         {
-          'client_id' => application.uid,
           'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
           'client_assertion' => invalid_assertion,
           'grant_type' => 'authorization_code'
@@ -171,7 +181,6 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
 
       let(:parameters) do
         {
-          'client_id' => application.uid,
           'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
           'client_assertion' => wrong_audience_assertion,
           'grant_type' => 'authorization_code'

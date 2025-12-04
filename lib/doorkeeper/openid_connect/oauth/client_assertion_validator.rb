@@ -69,9 +69,9 @@ module Doorkeeper
         def verify_issuer_and_subject(decoded)
           client_id = application.uid
 
+          # RFC 7523 Section 3: iss and sub MUST be equal to client_id
           return false unless decoded['iss'] == client_id
           return false unless decoded['sub'] == client_id
-          return false unless decoded['iss'] == decoded['sub']
 
           true
         end
