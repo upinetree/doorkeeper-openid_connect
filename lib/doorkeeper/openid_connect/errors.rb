@@ -17,6 +17,7 @@ module Doorkeeper
         end
       end
       class InvalidJwks < OpenidConnectError; end
+      class JwtVerificationError < OpenidConnectError; end
 
       # OAuth 2.0 errors
       # https://tools.ietf.org/html/rfc6749#section-4.1.2.1

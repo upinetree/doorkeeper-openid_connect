@@ -15,27 +15,36 @@ module Doorkeeper
         end
 
         def valid?
-          decoded_token = decode_and_verify_signature
-          return false unless decoded_token
-
-          verify_claims(decoded_token)
-        rescue InvalidJwks
+          validate!
+          true
+        rescue JwtVerificationError, InvalidJwks
           false
+        end
+
+        def validate!
+          decoded_token = decode_and_verify_signature
+          verify_claims(decoded_token)
         end
 
         private
 
         def decode_and_verify_signature
           public_keys = application.public_keys
-          return nil if public_keys.empty?
 
-          public_keys.each do |jwk|
+          raise JwtVerificationError, 'Empty JWKS' if public_keys.empty?
+
+          errors = []
+          public_keys.each_with_index do |jwk, index|
             return decode_with_key(jwk)
-          rescue JWT::DecodeError, JWT::VerificationError
+          rescue JWT::DecodeError, JWT::VerificationError => e
+            # エラーと鍵の対応を記録
+            key_id = jwk['kid'] || "key#{index + 1}"
+            errors << "#{key_id}: #{e.class.name} - #{e.message}"
             next
           end
 
-          nil
+          # すべてのエラー情報を含めて raise
+          raise JwtVerificationError, "JWT signature verification failed with all keys (#{errors.join('; ')})"
         end
 
         def decode_with_key(jwk)
@@ -53,11 +62,17 @@ module Doorkeeper
         end
 
         def verify_claims(decoded)
-          return false unless verify_required_claims(decoded)
-          return false unless verify_issuer_and_subject(decoded)
-          return false unless verify_issued_at(decoded)
+          unless verify_required_claims(decoded)
+            raise JwtVerificationError, 'Missing required claims'
+          end
 
-          true
+          unless verify_issuer_and_subject(decoded)
+            raise JwtVerificationError, 'Issuer or subject mismatch'
+          end
+
+          unless verify_issued_at(decoded)
+            raise JwtVerificationError, 'Invalid issued_at time'
+          end
         end
 
         def verify_required_claims(decoded)

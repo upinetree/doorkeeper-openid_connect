@@ -93,6 +93,10 @@ module Doorkeeper
       def open_id_request_model
         @open_id_request_model ||= open_id_request_class.to_s.constantize
       end
+
+      option :on_jwt_verification_failure, default: lambda { |_error, _context|
+        nil
+      }
     end
   end
 end

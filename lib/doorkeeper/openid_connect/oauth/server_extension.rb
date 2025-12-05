@@ -27,9 +27,18 @@ module Doorkeeper
             token_endpoint_url: token_endpoint_url
           )
 
-          return nil unless validator.valid?
+          validator.validate!
 
           Doorkeeper::OAuth::Client.new(application)
+        rescue JWT::DecodeError, JwtVerificationError, InvalidJwks => e
+          Doorkeeper::OpenidConnect.configuration.on_jwt_verification_failure.call(
+            e,
+            {
+              application_id: application&.id,
+              assertion: parameters['client_assertion']
+            }
+          )
+          nil
         end
 
         def uses_private_key_jwt?
@@ -42,8 +51,6 @@ module Doorkeeper
           # Verification will happen in ClientAssertionValidator
           decoded = JWT.decode(parameters['client_assertion'], nil, false).first
           decoded['iss']
-        rescue JWT::DecodeError
-          nil
         end
 
         def token_endpoint_url

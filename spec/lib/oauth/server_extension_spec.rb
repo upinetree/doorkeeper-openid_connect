@@ -219,4 +219,34 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
       expect(Doorkeeper::OAuth::Client).to have_received(:authenticate)
     end
   end
+
+  describe 'on_jwt_verification_failure callback' do
+    let(:callback_spy) { spy('callback') }
+
+    before do
+      allow(Doorkeeper::OpenidConnect.configuration)
+        .to receive(:on_jwt_verification_failure)
+        .and_return(callback_spy)
+    end
+
+    context 'when JWT is malformed' do
+      let(:parameters) do
+        {
+          'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          'client_assertion' => 'malformed.jwt.token',
+          'grant_type' => 'authorization_code'
+        }
+      end
+
+      it 'calls the callback with error and context' do
+        server.client
+
+        expect(callback_spy).to have_received(:call) do |error, context|
+          expect(error).to be_a(JWT::DecodeError)
+          expect(context[:application_id]).to be_nil
+          expect(context[:assertion]).to eq('malformed.jwt.token')
+        end
+      end
+    end
+  end
 end

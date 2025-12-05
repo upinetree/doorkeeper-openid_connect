@@ -85,4 +85,13 @@ Doorkeeper::OpenidConnect.configure do
   #     resource_owner.bar
   #   end
   # end
+
+  # Callback to be invoked when JWT verification fails (e.g., invalid signature, expired token, etc.)
+  # Useful for logging, monitoring, or debugging authentication issues.
+  # on_jwt_verification_failure do |error, context|
+  #   Rails.logger.warn(
+  #     "[Doorkeeper OpenID Connect] JWT verification failed: #{error.class.name} - #{error.message} " \
+  #     "(application_id: #{context[:application_id]}, assertion: #{context[:assertion]})"
+  #   )
+  # end
 end
