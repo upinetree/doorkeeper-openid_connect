@@ -29,11 +29,14 @@ module Doorkeeper
       end
 
       def self.prepended(base)
+        # TODO: できれば self.columns.detect {|c| c.name == 'token_endpoint_auth_method' } で定義するか切り分けたい
+        # 各メソッドも include Methods で表現する
         base.class_eval do
           validate :jwks_format, if: -> { uses_private_key_jwt? }
 
           private
 
+          # TODO: self.prepended の外でOK
           def jwks_format
             if jwks.blank?
               errors.add(:jwks, 'must be present when using private_key_jwt')
