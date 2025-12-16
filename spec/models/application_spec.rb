@@ -84,6 +84,39 @@ describe Doorkeeper::OpenidConnect::Application do
     end
   end
 
+  describe '#secret_required?' do
+    context 'when using private_key_jwt' do
+      before do
+        application.name = 'Test App'
+        application.redirect_uri = 'https://example.com/callback'
+        application.confidential = true
+        application.token_endpoint_auth_method = 'private_key_jwt'
+      end
+
+      it 'returns false' do
+        expect(application.send(:secret_required?)).to be false
+      end
+    end
+
+    context 'when not using private_key_jwt' do
+      before do
+        application.name = 'Test App'
+        application.redirect_uri = 'https://example.com/callback'
+        application.secret = 'test-secret'
+        application.confidential = true
+        application.token_endpoint_auth_method = nil
+      end
+
+      it 'delegates to the parent implementation' do
+        # Verify that the parent's secret_required? is called by checking
+        # that confidential? is called (used by parent implementation)
+        expect(application).to receive(:confidential?).and_call_original
+
+        application.send(:secret_required?)
+      end
+    end
+  end
+
   describe 'validations' do
     context 'when using private_key_jwt' do
       before do

@@ -4,6 +4,7 @@ module Doorkeeper
   module OpenidConnect
     module Application
       include Doorkeeper::OpenidConnect::Errors
+
       def public_keys
         return [] unless respond_to?(:jwks)
         return [] if jwks.blank?
@@ -18,6 +19,13 @@ module Doorkeeper
 
       def uses_private_key_jwt?
         respond_to?(:token_endpoint_auth_method) && token_endpoint_auth_method == 'private_key_jwt'
+      end
+
+      private
+
+      # Override Doorkeeper's method to conditionally require client secret
+      def secret_required?
+        !uses_private_key_jwt? && super
       end
 
       def self.prepended(base)
