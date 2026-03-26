@@ -14,7 +14,7 @@ module Doorkeeper
       def authenticate_client_with_private_key_jwt
         return nil unless uses_private_key_jwt?
 
-        client_id = credentials&.uid
+        client_id = credentials&.uid || client_id_from_assertion
         return nil if client_id.blank?
 
         application = Doorkeeper.config.application_model.by_uid(client_id)
@@ -37,6 +37,12 @@ module Doorkeeper
             assertion: parameters[:client_assertion]
           }
         )
+        nil
+      end
+
+      def client_id_from_assertion
+        JWT.decode(parameters[:client_assertion], nil, false).first['iss']
+      rescue JWT::DecodeError
         nil
       end
 

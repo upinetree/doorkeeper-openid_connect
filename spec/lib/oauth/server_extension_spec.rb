@@ -55,6 +55,22 @@ describe Doorkeeper::OpenidConnect::ServerExtension do
       end
     end
 
+    context 'when client_id param is absent (e.g. authorization_code strategy)' do
+      let(:parameters) do
+        {
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          client_assertion: client_assertion,
+          grant_type: 'authorization_code'
+        }
+      end
+
+      it 'falls back to iss claim in the assertion' do
+        client = server.client
+        expect(client).to be_present
+        expect(client.uid).to eq(application.uid)
+      end
+    end
+
     context 'when client_assertion_type is missing' do
       let(:parameters) do
         {
