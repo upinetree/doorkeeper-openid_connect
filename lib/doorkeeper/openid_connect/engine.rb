@@ -10,7 +10,7 @@ module Doorkeeper
       config.to_prepare do
         Doorkeeper::AuthorizationsController.prepend Doorkeeper::OpenidConnect::AuthorizationsExtension
         Doorkeeper::ApplicationsController.prepend Doorkeeper::OpenidConnect::ApplicationsExtension
-        Doorkeeper::Server.prepend Doorkeeper::OpenidConnect::OAuth::ServerExtension
+        Doorkeeper::Server.prepend Doorkeeper::OpenidConnect::ServerExtension
         Doorkeeper::OAuth::RefreshTokenRequest.prepend Doorkeeper::OpenidConnect::OAuth::RefreshTokenRequestExtension
         Doorkeeper::Request::RefreshToken.prepend Doorkeeper::OpenidConnect::RequestStrategy::RefreshTokenExtension
       end

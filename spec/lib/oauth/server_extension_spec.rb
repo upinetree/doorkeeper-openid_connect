@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
+describe Doorkeeper::OpenidConnect::ServerExtension do
   let(:keypair) { generate_ec_keypair }
   let(:jwks) { generate_jwks(keypair) }
   let(:application) do
@@ -41,9 +41,10 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     context 'when valid client_assertion is provided' do
       let(:parameters) do
         {
-          'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'client_assertion' => client_assertion,
-          'grant_type' => 'authorization_code'
+          client_id: application.uid,
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          client_assertion: client_assertion,
+          grant_type: 'authorization_code'
         }
       end
 
@@ -57,14 +58,13 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     context 'when client_assertion_type is missing' do
       let(:parameters) do
         {
-          'client_assertion' => client_assertion,
-          'grant_type' => 'authorization_code'
+          client_id: application.uid,
+          client_assertion: client_assertion,
+          grant_type: 'authorization_code'
         }
       end
 
       it 'falls back to standard authentication' do
-        # In this case, standard authentication should return nil
-        # because no client_secret is provided
         expect(server.client).to be_nil
       end
     end
@@ -72,14 +72,13 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     context 'when client_assertion is missing' do
       let(:parameters) do
         {
-          'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'grant_type' => 'authorization_code'
+          client_id: application.uid,
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          grant_type: 'authorization_code'
         }
       end
 
       it 'falls back to standard authentication' do
-        # In this case, standard authentication should return nil
-        # because no client_secret is provided
         expect(server.client).to be_nil
       end
     end
@@ -87,9 +86,10 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     context 'when JWT is malformed' do
       let(:parameters) do
         {
-          'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'client_assertion' => 'malformed.jwt.token',
-          'grant_type' => 'authorization_code'
+          client_id: application.uid,
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          client_assertion: 'malformed.jwt.token',
+          grant_type: 'authorization_code'
         }
       end
 
@@ -99,19 +99,16 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     end
 
     context 'when application does not exist' do
-      let(:non_existent_assertion) do
-        generate_client_assertion(
-          client_id: 'non-existent-client',
-          audience: token_endpoint_url,
-          keypair: keypair
-        )
-      end
-
       let(:parameters) do
         {
-          'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'client_assertion' => non_existent_assertion,
-          'grant_type' => 'authorization_code'
+          client_id: 'non-existent-client',
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          client_assertion: generate_client_assertion(
+            client_id: 'non-existent-client',
+            audience: token_endpoint_url,
+            keypair: keypair
+          ),
+          grant_type: 'authorization_code'
         }
       end
 
@@ -122,23 +119,19 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
 
     context 'when application is not configured for private_key_jwt' do
       let(:application_secret_basic) do
-        create(:application,
-               token_endpoint_auth_method: 'client_secret_basic')
-      end
-
-      let(:assertion_for_secret_basic) do
-        generate_client_assertion(
-          client_id: application_secret_basic.uid,
-          audience: token_endpoint_url,
-          keypair: keypair
-        )
+        create(:application, token_endpoint_auth_method: 'client_secret_basic')
       end
 
       let(:parameters) do
         {
-          'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'client_assertion' => assertion_for_secret_basic,
-          'grant_type' => 'authorization_code'
+          client_id: application_secret_basic.uid,
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          client_assertion: generate_client_assertion(
+            client_id: application_secret_basic.uid,
+            audience: token_endpoint_url,
+            keypair: keypair
+          ),
+          grant_type: 'authorization_code'
         }
       end
 
@@ -149,19 +142,16 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
 
     context 'when client_assertion is invalid' do
       let(:wrong_keypair) { generate_ec_keypair }
-      let(:invalid_assertion) do
-        generate_client_assertion(
-          client_id: application.uid,
-          audience: token_endpoint_url,
-          keypair: wrong_keypair
-        )
-      end
-
       let(:parameters) do
         {
-          'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'client_assertion' => invalid_assertion,
-          'grant_type' => 'authorization_code'
+          client_id: application.uid,
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          client_assertion: generate_client_assertion(
+            client_id: application.uid,
+            audience: token_endpoint_url,
+            keypair: wrong_keypair
+          ),
+          grant_type: 'authorization_code'
         }
       end
 
@@ -171,19 +161,16 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     end
 
     context 'when audience does not match token endpoint' do
-      let(:wrong_audience_assertion) do
-        generate_client_assertion(
-          client_id: application.uid,
-          audience: 'https://wrong.example.com/oauth/token',
-          keypair: keypair
-        )
-      end
-
       let(:parameters) do
         {
-          'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'client_assertion' => wrong_audience_assertion,
-          'grant_type' => 'authorization_code'
+          client_id: application.uid,
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          client_assertion: generate_client_assertion(
+            client_id: application.uid,
+            audience: 'https://wrong.example.com/oauth/token',
+            keypair: keypair
+          ),
+          grant_type: 'authorization_code'
         }
       end
 
@@ -200,21 +187,17 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
 
     let(:parameters) do
       {
-        'client_id' => standard_application.uid,
-        'client_secret' => standard_application.secret,
-        'grant_type' => 'authorization_code'
+        client_id: standard_application.uid,
+        client_secret: standard_application.secret,
+        grant_type: 'authorization_code'
       }
     end
 
     before do
-      # Mock the OAuth::Client.authenticate to test that super is called correctly
-      allow(Doorkeeper::OAuth::Client).to receive(:authenticate)
-        .and_call_original
+      allow(Doorkeeper::OAuth::Client).to receive(:authenticate).and_call_original
     end
 
     it 'uses standard authentication' do
-      # Since we don't have the plaintext secret, we'll verify that
-      # OAuth::Client.authenticate is called (which means super was invoked)
       server.client
       expect(Doorkeeper::OAuth::Client).to have_received(:authenticate)
     end
@@ -232,9 +215,10 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
     context 'when JWT is malformed' do
       let(:parameters) do
         {
-          'client_assertion_type' => 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-          'client_assertion' => 'malformed.jwt.token',
-          'grant_type' => 'authorization_code'
+          client_id: application.uid,
+          client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+          client_assertion: 'malformed.jwt.token',
+          grant_type: 'authorization_code'
         }
       end
 
@@ -242,8 +226,8 @@ describe Doorkeeper::OpenidConnect::OAuth::ServerExtension do
         server.client
 
         expect(callback_spy).to have_received(:call) do |error, context|
-          expect(error).to be_a(JWT::DecodeError)
-          expect(context[:application_id]).to be_nil
+          expect(error).to be_a(Doorkeeper::OpenidConnect::Errors::JwtVerificationError)
+          expect(context[:application_id]).to eq(application.id)
           expect(context[:assertion]).to eq('malformed.jwt.token')
         end
       end
