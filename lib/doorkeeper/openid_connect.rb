@@ -31,7 +31,10 @@ require 'doorkeeper/openid_connect/oauth/client_assertion_validator'
 require 'doorkeeper/openid_connect/oauth/password_access_token_request'
 require 'doorkeeper/openid_connect/oauth/pre_authorization'
 require 'doorkeeper/openid_connect/oauth/server_extension'
+require 'doorkeeper/openid_connect/oauth/refresh_token_request_extension'
 require 'doorkeeper/openid_connect/oauth/token_response'
+
+require 'doorkeeper/openid_connect/request_strategy/refresh_token_extension'
 
 require 'doorkeeper/openid_connect/orm/active_record'
 

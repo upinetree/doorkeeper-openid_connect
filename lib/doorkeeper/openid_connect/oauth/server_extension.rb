@@ -15,7 +15,7 @@ module Doorkeeper
         def authenticate_client_with_private_key_jwt
           return nil unless uses_private_key_jwt?
 
-          client_id = extract_client_id_from_assertion
+          client_id = credentials&.uid
           return nil if client_id.blank?
 
           application = Doorkeeper.config.application_model.by_uid(client_id)
@@ -44,13 +44,6 @@ module Doorkeeper
         def uses_private_key_jwt?
           parameters['client_assertion_type'] == 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer' &&
             parameters['client_assertion'].present?
-        end
-
-        def extract_client_id_from_assertion
-          # Decode JWT without verification to extract iss claim
-          # Verification will happen in ClientAssertionValidator
-          decoded = JWT.decode(parameters['client_assertion'], nil, false).first
-          decoded['iss']
         end
 
         def token_endpoint_url

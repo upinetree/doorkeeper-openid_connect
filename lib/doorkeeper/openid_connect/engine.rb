@@ -11,6 +11,8 @@ module Doorkeeper
         Doorkeeper::AuthorizationsController.prepend Doorkeeper::OpenidConnect::AuthorizationsExtension
         Doorkeeper::ApplicationsController.prepend Doorkeeper::OpenidConnect::ApplicationsExtension
         Doorkeeper::Server.prepend Doorkeeper::OpenidConnect::OAuth::ServerExtension
+        Doorkeeper::OAuth::RefreshTokenRequest.prepend Doorkeeper::OpenidConnect::OAuth::RefreshTokenRequestExtension
+        Doorkeeper::Request::RefreshToken.prepend Doorkeeper::OpenidConnect::RequestStrategy::RefreshTokenExtension
       end
     end
   end
