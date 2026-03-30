@@ -166,21 +166,65 @@ describe Doorkeeper::OpenidConnect::OAuth::ClientAssertionValidator do
                token_endpoint_auth_method: 'private_key_jwt',
                jwks: jwks_multi.to_json)
       end
-      let(:assertion_with_key2) do
-        generate_client_assertion(
-          client_id: application_multi_keys.uid,
-          audience: token_endpoint_url,
-          keypair: keypair2
-        )
+
+      context 'when kid matches the signing key (test-key-2)' do
+        let(:assertion_with_key2) do
+          generate_client_assertion(
+            client_id: application_multi_keys.uid,
+            audience: token_endpoint_url,
+            keypair: keypair2,
+            kid: 'test-key-2'
+          )
+        end
+
+        it 'returns true' do
+          multi_key_validator = described_class.new(
+            assertion: assertion_with_key2,
+            application: application_multi_keys,
+            token_endpoint_url: token_endpoint_url
+          )
+          expect(multi_key_validator.valid?).to be true
+        end
       end
 
-      it 'returns true' do
-        multi_key_validator = described_class.new(
-          assertion: assertion_with_key2,
-          application: application_multi_keys,
-          token_endpoint_url: token_endpoint_url
-        )
-        expect(multi_key_validator.valid?).to be true
+      context 'when kid is absent (multiple keys require kid per OIDC Core)' do
+        let(:assertion_without_kid) do
+          generate_client_assertion(
+            client_id: application_multi_keys.uid,
+            audience: token_endpoint_url,
+            keypair: keypair2,
+            kid: nil
+          )
+        end
+
+        it 'returns false' do
+          multi_key_validator = described_class.new(
+            assertion: assertion_without_kid,
+            application: application_multi_keys,
+            token_endpoint_url: token_endpoint_url
+          )
+          expect(multi_key_validator.valid?).to be false
+        end
+      end
+
+      context 'when kid does not match any key in JWKS' do
+        let(:assertion_unknown_kid) do
+          generate_client_assertion(
+            client_id: application_multi_keys.uid,
+            audience: token_endpoint_url,
+            keypair: keypair1,
+            kid: 'unknown-key-id'
+          )
+        end
+
+        it 'returns false' do
+          multi_key_validator = described_class.new(
+            assertion: assertion_unknown_kid,
+            application: application_multi_keys,
+            token_endpoint_url: token_endpoint_url
+          )
+          expect(multi_key_validator.valid?).to be false
+        end
       end
     end
 

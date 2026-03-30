@@ -33,18 +33,36 @@ module Doorkeeper
 
           raise JwtVerificationError, 'Empty JWKS' if public_keys.empty?
 
+          # RFC 7517 Section 4.5 defines kid as OPTIONAL.
+          # OpenID Connect Core Section 10.1 adds a stricter rule: when the JWKS contains multiple keys,
+          # kid MUST be present so the server can identify the correct key without guessing.
+          kid = jwt_header['kid']
+          candidate_keys = if kid.present?
+            matched = public_keys.select { |jwk| jwk['kid'] == kid }
+            raise JwtVerificationError, "No key found for kid: #{kid}" if matched.empty?
+            matched
+          elsif public_keys.size > 1
+            raise JwtVerificationError, 'kid is required when JWKS contains multiple keys'
+          else
+            public_keys
+          end
+
           errors = []
-          public_keys.each_with_index do |jwk, index|
+          candidate_keys.each_with_index do |jwk, index|
             return decode_with_key(jwk)
           rescue JWT::DecodeError, JWT::VerificationError => e
-            # エラーと鍵の対応を記録
             key_id = jwk['kid'] || "key#{index + 1}"
             errors << "#{key_id}: #{e.class.name} - #{e.message}"
             next
           end
 
-          # すべてのエラー情報を含めて raise
           raise JwtVerificationError, "JWT signature verification failed with all keys (#{errors.join('; ')})"
+        end
+
+        def jwt_header
+          JWT.decode(assertion, nil, false).last
+        rescue JWT::DecodeError
+          {}
         end
 
         def decode_with_key(jwk)

@@ -19,7 +19,7 @@ module JwtHelpers
     { keys: keys }
   end
 
-  def generate_client_assertion(client_id:, audience:, keypair:, algorithm: 'ES256', extra_claims: {})
+  def generate_client_assertion(client_id:, audience:, keypair:, algorithm: 'ES256', extra_claims: {}, kid: 'test-key-1')
     now = Time.now.to_i
     payload = {
       iss: client_id,
@@ -30,7 +30,8 @@ module JwtHelpers
       exp: now + 300
     }.merge(extra_claims)
 
-    JWT.encode(payload, keypair, algorithm, kid: 'test-key-1')
+    headers = kid.present? ? { kid: kid } : {}
+    JWT.encode(payload, keypair, algorithm, headers)
   end
 
   def curve_for_algorithm(algorithm)
