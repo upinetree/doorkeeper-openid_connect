@@ -36,7 +36,7 @@ describe Doorkeeper::OpenidConnect::DynamicClientRegistrationController, type: :
         'redirect_uris' => redirect_uris,
         'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post],
         'response_types' => ['code', 'token', 'id_token', 'id_token token'],
-        'grant_types' => %w[authorization_code client_credentials implicit_oidc],
+        'grant_types' => %w[authorization_code client_credentials implicit_oidc refresh_token],
         'scope' => "public",
         'application_type' => "web"
       })

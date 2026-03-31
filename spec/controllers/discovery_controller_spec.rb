@@ -83,9 +83,9 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'scopes_supported' => ['openid'],
         'response_types_supported' => ['code', 'token', 'id_token', 'id_token token'],
         'response_modes_supported' => %w[query fragment form_post],
-        'grant_types_supported' => %w[authorization_code client_credentials implicit_oidc],
+        'grant_types_supported' => %w[authorization_code client_credentials implicit_oidc refresh_token],
 
-        'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post],
+        'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post private_key_jwt],
 
         'subject_types_supported' => [
           'public',
@@ -183,33 +183,33 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
     context 'when client_credentials is configured with only from_basic' do
       before { Doorkeeper.configure { client_credentials :from_basic } }
 
-      it 'returns only client_secret_basic in token_endpoint_auth_methods_supported' do
+      it 'returns only client_secret_basic and private_key_jwt in token_endpoint_auth_methods_supported' do
         get :provider
         data = JSON.parse(response.body)
 
-        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_basic]
+        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_basic private_key_jwt]
       end
     end
 
     context 'when client_credentials is configured with only from_params' do
       before { Doorkeeper.configure { client_credentials :from_params } }
 
-      it 'returns only client_secret_post in token_endpoint_auth_methods_supported' do
+      it 'returns only client_secret_post and private_key_jwt in token_endpoint_auth_methods_supported' do
         get :provider
         data = JSON.parse(response.body)
 
-        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_post]
+        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_post private_key_jwt]
       end
     end
 
     context 'when client_credentials is configured with both from_basic and from_params' do
       before { Doorkeeper.configure { client_credentials :from_basic, :from_params } }
 
-      it 'returns both client_secret_basic and client_secret_post in token_endpoint_auth_methods_supported' do
+      it 'returns client_secret_basic, client_secret_post and private_key_jwt in token_endpoint_auth_methods_supported' do
         get :provider
         data = JSON.parse(response.body)
 
-        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_basic client_secret_post]
+        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_basic client_secret_post private_key_jwt]
       end
     end
 
