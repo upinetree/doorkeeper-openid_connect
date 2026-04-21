@@ -12,5 +12,5 @@ Doorkeeper.configure do
     end
   end
 
-  grant_flows %w[authorization_code client_credentials implicit_oidc refresh_token]
+  grant_flows %w[authorization_code client_credentials implicit_oidc]
 end

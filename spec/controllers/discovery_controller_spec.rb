@@ -20,9 +20,9 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'scopes_supported' => ['openid'],
         'response_types_supported' => ['code', 'token', 'id_token', 'id_token token'],
         'response_modes_supported' => %w[query fragment form_post],
-        'grant_types_supported' => %w[authorization_code client_credentials implicit_oidc refresh_token],
+        'grant_types_supported' => %w[authorization_code client_credentials implicit_oidc],
 
-        'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post private_key_jwt],
+        'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post],
 
         'subject_types_supported' => [
           'public',
@@ -83,9 +83,9 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         'scopes_supported' => ['openid'],
         'response_types_supported' => ['code', 'token', 'id_token', 'id_token token'],
         'response_modes_supported' => %w[query fragment form_post],
-        'grant_types_supported' => %w[authorization_code client_credentials implicit_oidc refresh_token],
+        'grant_types_supported' => %w[authorization_code client_credentials implicit_oidc],
 
-        'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post private_key_jwt],
+        'token_endpoint_auth_methods_supported' => %w[client_secret_basic client_secret_post],
 
         'subject_types_supported' => [
           'public',
@@ -204,7 +204,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         get :provider
         data = JSON.parse(response.body)
 
-        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_basic private_key_jwt]
+        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_basic]
       end
     end
 
@@ -215,7 +215,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         get :provider
         data = JSON.parse(response.body)
 
-        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_post private_key_jwt]
+        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_post]
       end
     end
 
@@ -226,7 +226,7 @@ describe Doorkeeper::OpenidConnect::DiscoveryController, type: :controller do
         get :provider
         data = JSON.parse(response.body)
 
-        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_basic client_secret_post private_key_jwt]
+        expect(data['token_endpoint_auth_methods_supported']).to eq %w[client_secret_basic client_secret_post]
       end
     end
 

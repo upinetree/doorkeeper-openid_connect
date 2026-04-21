@@ -2,8 +2,6 @@
 
 source 'https://rubygems.org'
 
-gem 'doorkeeper-client_assertion', path: 'gems/doorkeeper-client_assertion'
-
 # use Rails version specified by environment
 ENV['rails'] ||= '8.0.0'
 gem 'rails', "~> #{ENV['rails']}"

@@ -6,7 +6,6 @@ require "action_controller/railtie"
 require "action_view/railtie"
 
 Bundler.require(*Rails.groups)
-require 'doorkeeper-client_assertion'
 
 module Dummy
   class Application < Rails::Application
