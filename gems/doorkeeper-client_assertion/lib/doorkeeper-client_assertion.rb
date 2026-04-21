@@ -2,6 +2,7 @@
 
 require 'jwt'
 
+require 'doorkeeper/client_assertion/version'
 require 'doorkeeper/client_assertion/errors'
 require 'doorkeeper/client_assertion/config'
 require 'doorkeeper/client_assertion/client_assertion_validator'
