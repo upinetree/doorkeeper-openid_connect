@@ -31,6 +31,7 @@ Dir.chdir('spec/dummy') do
 end
 
 require_relative 'support/doorkeeper_configuration.rb'
+require_relative 'support/jwt_helpers.rb'
 
 require 'factory_bot'
 FactoryBot.find_definitions
